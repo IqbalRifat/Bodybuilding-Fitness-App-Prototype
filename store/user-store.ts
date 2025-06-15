@@ -67,7 +67,7 @@ export const useUserStore = create<UserState>()(
           
           const newProfile = {
             ...state.profile,
-            heightUnit: newUnit,
+            heightUnit: newUnit as 'cm' | 'in',
             height: newHeight
           };
           
@@ -92,7 +92,7 @@ export const useUserStore = create<UserState>()(
           
           const newProfile = {
             ...state.profile,
-            weightUnit: newUnit,
+            weightUnit: newUnit as 'kg' | 'lb',
             currentWeight: newCurrentWeight,
             goalWeight: newGoalWeight
           };

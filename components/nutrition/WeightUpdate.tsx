@@ -14,9 +14,9 @@ interface WeightUpdateProps {
 
 export const WeightUpdate: React.FC<WeightUpdateProps> = ({ date }) => {
   const addWeightEntry = useNutritionStore(state => state.addWeightEntry);
-  const getLatestWeight = useNutritionStore(state => state.getLatestWeight);
-  const getAllWeightEntries = useNutritionStore(state => state.getAllWeightEntries);
+  const getWeightEntries = useNutritionStore(state => state.getWeightEntries);
   const removeWeightEntry = useNutritionStore(state => state.removeWeightEntry);
+  const getLatestWeight = useNutritionStore(state => state.getLatestWeight);
   const updateWeight = useUserStore(state => state.updateWeight);
   const profile = useUserStore(state => state.profile);
   
@@ -26,7 +26,7 @@ export const WeightUpdate: React.FC<WeightUpdateProps> = ({ date }) => {
   
   const weightUnit = profile?.weightUnit || 'kg';
   const currentWeight = getLatestWeight() || 0;
-  const weightEntries = getAllWeightEntries();
+  const weightEntries = getWeightEntries();
   
   const handleUpdateWeight = () => {
     if (!weight) return;

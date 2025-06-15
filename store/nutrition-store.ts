@@ -36,6 +36,7 @@ interface NutritionState {
   
   // Weight entries
   addWeightEntry: (entry: WeightEntry) => void;
+  removeWeightEntry: (id: string) => void;
   getLatestWeight: () => number | null;
   getWeightEntries: () => WeightEntry[];
   getNormalizedWeightData: () => { date: string; weight: number; normalized: number }[];
@@ -125,6 +126,10 @@ export const useNutritionStore = create<NutritionState>()(
       // Weight entries
       addWeightEntry: (entry) => set((state) => ({
         weightEntries: [...state.weightEntries, entry]
+      })),
+      
+      removeWeightEntry: (id) => set((state) => ({
+        weightEntries: state.weightEntries.filter(entry => entry.id !== id)
       })),
       
       getLatestWeight: () => {

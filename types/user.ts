@@ -3,6 +3,8 @@ export interface UserProfile {
   name: string;
   email: string;
   dateOfBirth: string;
+  gender: 'male' | 'female' | 'other';
+  age: number;
   height: number;
   heightUnit: 'cm' | 'in';
   currentWeight: number;
@@ -11,6 +13,7 @@ export interface UserProfile {
   fitnessGoal: 'muscle_gain' | 'fat_loss' | 'maintenance' | 'competition_prep';
   experienceLevel: 'beginner' | 'intermediate' | 'advanced';
   trainingDaysPerWeek: number;
+  activityLevel: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active';
   competitionDate?: string;
   injuries?: string[];
   calorieGoal: number;
