@@ -64,6 +64,8 @@ export interface Supplement {
   timeOfDay: string;
   taken: boolean;
   date: string;
+  micronutrients?: Micronutrients;
+  isCustom?: boolean;
 }
 
 export interface WeightEntry {

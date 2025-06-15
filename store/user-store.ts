@@ -27,11 +27,20 @@ export const useUserStore = create<UserState>()(
       isOnboarded: false,
       isAuthenticated: false,
       
-      setProfile: (profile) => set({ profile }),
+      setProfile: (profile) => {
+        set({ profile });
+        // Calculate calorie goals when profile is set
+        setTimeout(() => get().calculateCalorieGoals(), 0);
+      },
       
-      updateWeight: (weight) => set((state) => ({
-        profile: state.profile ? { ...state.profile, currentWeight: weight } : null
-      })),
+      updateWeight: (weight) => set((state) => {
+        const newProfile = state.profile ? { ...state.profile, currentWeight: weight } : null;
+        
+        // Recalculate calorie goals when weight is updated
+        setTimeout(() => get().calculateCalorieGoals(), 0);
+        
+        return { profile: newProfile };
+      }),
       
       updateDailyStats: (stats) => set((state) => ({
         dailyStats: state.dailyStats ? { ...state.dailyStats, ...stats } : null
@@ -56,13 +65,16 @@ export const useUserStore = create<UserState>()(
             newHeight = Math.round(newHeight * 2.54);
           }
           
-          return {
-            profile: {
-              ...state.profile,
-              heightUnit: newUnit,
-              height: newHeight
-            }
+          const newProfile = {
+            ...state.profile,
+            heightUnit: newUnit,
+            height: newHeight
           };
+          
+          // Recalculate calorie goals when unit is changed
+          setTimeout(() => get().calculateCalorieGoals(), 0);
+          
+          return { profile: newProfile };
         } else {
           const currentUnit = state.profile.weightUnit;
           const newUnit = currentUnit === 'kg' ? 'lb' : 'kg';
@@ -78,39 +90,62 @@ export const useUserStore = create<UserState>()(
             newGoalWeight = Math.round(newGoalWeight / 2.20462);
           }
           
-          return {
-            profile: {
-              ...state.profile,
-              weightUnit: newUnit,
-              currentWeight: newCurrentWeight,
-              goalWeight: newGoalWeight
-            }
+          const newProfile = {
+            ...state.profile,
+            weightUnit: newUnit,
+            currentWeight: newCurrentWeight,
+            goalWeight: newGoalWeight
           };
+          
+          // Recalculate calorie goals when unit is changed
+          setTimeout(() => get().calculateCalorieGoals(), 0);
+          
+          return { profile: newProfile };
         }
       }),
       
       calculateCalorieGoals: () => set((state) => {
         if (!state.profile) return { profile: null };
         
-        const { currentWeight, weightUnit, height, heightUnit, fitnessGoal, trainingDaysPerWeek, experienceLevel } = state.profile;
+        const { 
+          gender, 
+          age, 
+          currentWeight, 
+          weightUnit, 
+          height, 
+          heightUnit, 
+          fitnessGoal, 
+          trainingDaysPerWeek, 
+          experienceLevel,
+          activityLevel
+        } = state.profile;
         
         // Convert to metric for calculations if needed
         const weightInKg = weightUnit === 'kg' ? currentWeight : currentWeight / 2.20462;
         const heightInCm = heightUnit === 'cm' ? height : height * 2.54;
         
         // Basic BMR calculation (Mifflin-St Jeor)
-        // For simplicity, assuming 30 years old male
-        const bmr = 10 * weightInKg + 6.25 * heightInCm - 5 * 30 + 5;
-        
-        // Activity multiplier based on training days
-        let activityMultiplier = 1.2; // Sedentary
-        if (trainingDaysPerWeek >= 5) {
-          activityMultiplier = 1.725; // Very active
-        } else if (trainingDaysPerWeek >= 3) {
-          activityMultiplier = 1.55; // Moderately active
-        } else if (trainingDaysPerWeek >= 1) {
-          activityMultiplier = 1.375; // Lightly active
+        let bmr = 0;
+        if (gender === 'male') {
+          bmr = 10 * weightInKg + 6.25 * heightInCm - 5 * (age || 30) + 5;
+        } else {
+          bmr = 10 * weightInKg + 6.25 * heightInCm - 5 * (age || 30) - 161;
         }
+        
+        // Activity multiplier based on activity level and training days
+        let activityMultiplier = 1.2; // Sedentary
+        
+        if (activityLevel === 'very_active') {
+          activityMultiplier = 1.725;
+        } else if (activityLevel === 'moderately_active') {
+          activityMultiplier = 1.55;
+        } else if (activityLevel === 'lightly_active') {
+          activityMultiplier = 1.375;
+        }
+        
+        // Add additional activity for training days
+        const trainingBonus = trainingDaysPerWeek * 0.05;
+        activityMultiplier += trainingBonus;
         
         // TDEE (Total Daily Energy Expenditure)
         let tdee = bmr * activityMultiplier;
@@ -118,9 +153,15 @@ export const useUserStore = create<UserState>()(
         // Adjust based on fitness goal
         let calorieGoal = tdee;
         if (fitnessGoal === 'muscle_gain') {
-          calorieGoal = tdee + 500; // Surplus for muscle gain
+          // Adjust surplus based on experience level
+          const surplus = experienceLevel === 'beginner' ? 500 : 
+                          experienceLevel === 'intermediate' ? 350 : 250;
+          calorieGoal = tdee + surplus;
         } else if (fitnessGoal === 'fat_loss') {
-          calorieGoal = tdee - 500; // Deficit for fat loss
+          // Adjust deficit based on experience level
+          const deficit = experienceLevel === 'beginner' ? 500 : 
+                          experienceLevel === 'intermediate' ? 400 : 300;
+          calorieGoal = tdee - deficit;
         } else if (fitnessGoal === 'competition_prep') {
           calorieGoal = tdee - 700; // Larger deficit for competition prep
         }

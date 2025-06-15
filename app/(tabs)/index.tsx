@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -26,8 +26,8 @@ export default function HomeScreen() {
     sum + meal.protein * meal.servingAmount, 0);
   
   // Calculate calorie and protein goals based on user profile (simplified)
-  const calorieGoal = profile?.fitnessGoal === 'muscle_gain' ? 3000 : 2500;
-  const proteinGoal = profile?.currentWeight ? profile.currentWeight * 2 : 150; // 2g per kg
+  const calorieGoal = profile?.calorieGoal || 2500;
+  const proteinGoal = profile?.proteinGoal || 150;
   
   return (
     <SafeAreaView style={styles.container} edges={['right', 'left']}>
@@ -133,38 +133,44 @@ export default function HomeScreen() {
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.quickActions}>
-          <Card style={styles.quickActionCard}>
-            <Text style={styles.quickActionTitle}>Track Nutrition</Text>
-            <Text style={styles.quickActionSubtitle}>Log your meals and supplements</Text>
-            <Button 
-              title="Go" 
-              size="small" 
-              style={styles.quickActionButton}
-              onPress={() => router.push('/nutrition')}
-            />
-          </Card>
+          <TouchableOpacity onPress={() => router.push('/nutrition')}>
+            <Card style={styles.quickActionCard}>
+              <Text style={styles.quickActionTitle}>Track Nutrition</Text>
+              <Text style={styles.quickActionSubtitle}>Log your meals and supplements</Text>
+              <Button 
+                title="Go" 
+                size="small" 
+                style={styles.quickActionButton}
+                onPress={() => router.push('/nutrition')}
+              />
+            </Card>
+          </TouchableOpacity>
           
-          <Card style={styles.quickActionCard}>
-            <Text style={styles.quickActionTitle}>Update Weight</Text>
-            <Text style={styles.quickActionSubtitle}>Keep your progress on track</Text>
-            <Button 
-              title="Go" 
-              size="small" 
-              style={styles.quickActionButton}
-              onPress={() => router.push('/profile')}
-            />
-          </Card>
+          <TouchableOpacity onPress={() => router.push('/profile')}>
+            <Card style={styles.quickActionCard}>
+              <Text style={styles.quickActionTitle}>Update Weight</Text>
+              <Text style={styles.quickActionSubtitle}>Keep your progress on track</Text>
+              <Button 
+                title="Go" 
+                size="small" 
+                style={styles.quickActionButton}
+                onPress={() => router.push('/profile')}
+              />
+            </Card>
+          </TouchableOpacity>
           
-          <Card style={styles.quickActionCard}>
-            <Text style={styles.quickActionTitle}>Learn</Text>
-            <Text style={styles.quickActionSubtitle}>Latest bodybuilding research</Text>
-            <Button 
-              title="Go" 
-              size="small" 
-              style={styles.quickActionButton}
-              onPress={() => router.push('/education')}
-            />
-          </Card>
+          <TouchableOpacity onPress={() => router.push('/education')}>
+            <Card style={styles.quickActionCard}>
+              <Text style={styles.quickActionTitle}>Learn</Text>
+              <Text style={styles.quickActionSubtitle}>Latest bodybuilding research</Text>
+              <Button 
+                title="Go" 
+                size="small" 
+                style={styles.quickActionButton}
+                onPress={() => router.push('/education')}
+              />
+            </Card>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -291,7 +297,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   quickActionCard: {
-    width: '48%',
+    width: '100%',
     marginBottom: 12,
     padding: 16,
   },

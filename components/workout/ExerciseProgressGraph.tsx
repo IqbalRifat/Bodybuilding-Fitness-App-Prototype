@@ -10,6 +10,9 @@ interface ExerciseProgressGraphProps {
   exerciseName: string;
 }
 
+type WeightData = { date: string; maxWeight: number }[];
+type VolumeData = { date: string; totalVolume: number }[];
+
 export const ExerciseProgressGraph: React.FC<ExerciseProgressGraphProps> = ({
   exerciseId,
   exerciseName,
@@ -19,8 +22,8 @@ export const ExerciseProgressGraph: React.FC<ExerciseProgressGraphProps> = ({
   const getExerciseMaxWeight = useWorkoutStore(state => state.getExerciseMaxWeight);
   const getExerciseTotalVolume = useWorkoutStore(state => state.getExerciseTotalVolume);
   
-  const weightData = getExerciseMaxWeight(exerciseId);
-  const volumeData = getExerciseTotalVolume(exerciseId);
+  const weightData = getExerciseMaxWeight(exerciseId) as WeightData;
+  const volumeData = getExerciseTotalVolume(exerciseId) as VolumeData;
   
   if (weightData.length === 0 && volumeData.length === 0) {
     return (
@@ -34,13 +37,15 @@ export const ExerciseProgressGraph: React.FC<ExerciseProgressGraphProps> = ({
   }
   
   // Use the appropriate data based on the selected metric
-  const currentData = metric === 'weight' ? weightData : volumeData;
-  
-  // Format dates for display
-  const labels = currentData.map(item => {
-    const date = new Date(item.date);
-    return `${date.getMonth() + 1}/${date.getDate()}`;
-  });
+  const labels = metric === 'weight' 
+    ? weightData.map(item => {
+        const date = new Date(item.date);
+        return `${date.getMonth() + 1}/${date.getDate()}`;
+      })
+    : volumeData.map(item => {
+        const date = new Date(item.date);
+        return `${date.getMonth() + 1}/${date.getDate()}`;
+      });
   
   // Extract values based on the selected metric
   const values = metric === 'weight' 
@@ -114,7 +119,7 @@ export const ExerciseProgressGraph: React.FC<ExerciseProgressGraphProps> = ({
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
           <Text style={styles.statValue}>
-            {Math.max(...values)}
+            {values.length > 0 ? Math.max(...values) : 0}
           </Text>
           <Text style={styles.statLabel}>
             Max {metric === 'weight' ? 'Weight' : 'Volume'}
