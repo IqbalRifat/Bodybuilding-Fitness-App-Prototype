@@ -34,7 +34,9 @@ export const useUserStore = create<UserState>()(
       },
       
       updateWeight: (weight) => set((state) => {
-        const newProfile = state.profile ? { ...state.profile, currentWeight: weight } : null;
+        if (!state.profile) return { profile: null };
+        
+        const newProfile = { ...state.profile, currentWeight: weight };
         
         // Recalculate calorie goals when weight is updated
         setTimeout(() => get().calculateCalorieGoals(), 0);

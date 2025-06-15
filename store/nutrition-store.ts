@@ -10,6 +10,7 @@ interface NutritionState {
   supplements: Supplement[];
   weightEntries: WeightEntry[];
   customFoodItems: FoodItem[];
+  customSupplements: Supplement[];
   settings: NutritionSettings;
   
   // Settings
@@ -32,7 +33,9 @@ interface NutritionState {
   toggleSupplement: (id: string) => void;
   addSupplement: (supplement: Supplement) => void;
   removeSupplement: (id: string) => void;
+  updateSupplement: (supplement: Supplement) => void;
   getSupplementsByDate: (date: string) => Supplement[];
+  getAllSupplements: () => Supplement[];
   
   // Weight entries
   addWeightEntry: (entry: WeightEntry) => void;
@@ -49,6 +52,7 @@ export const useNutritionStore = create<NutritionState>()(
       supplements: [...supplements], // Initialize with mock data
       weightEntries: [],
       customFoodItems: [],
+      customSupplements: [],
       settings: {
         includeBurnedCalories: false,
         trackMicronutrients: false,
@@ -111,16 +115,27 @@ export const useNutritionStore = create<NutritionState>()(
       })),
       
       addSupplement: (supplement) => set((state) => ({
-        supplements: [...state.supplements, supplement]
+        supplements: [...state.supplements, { ...supplement, isCustom: true }]
       })),
       
       removeSupplement: (id) => set((state) => ({
         supplements: state.supplements.filter(supp => supp.id !== id)
       })),
       
+      updateSupplement: (supplement) => set((state) => ({
+        supplements: state.supplements.map(supp => 
+          supp.id === supplement.id ? { ...supplement } : supp
+        )
+      })),
+      
       getSupplementsByDate: (date) => {
         const { supplements } = get();
         return supplements.filter(supp => supp.date === date);
+      },
+      
+      getAllSupplements: () => {
+        const { supplements, customSupplements } = get();
+        return [...supplements, ...customSupplements];
       },
       
       // Weight entries

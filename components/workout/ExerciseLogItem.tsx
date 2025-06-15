@@ -68,19 +68,29 @@ export const ExerciseLogItem: React.FC<ExerciseLogItemProps> = ({
   };
   
   const handleSetComplete = (index: number) => {
-    const updatedSets = exerciseLog.exerciseType === 'strength' 
-      ? [...exerciseLog.sets] as Set[]
-      : [...exerciseLog.sets] as CardioSet[];
+    if (exerciseLog.exerciseType === 'strength') {
+      const updatedSets = [...exerciseLog.sets] as Set[];
+      updatedSets[index] = {
+        ...updatedSets[index],
+        isCompleted: !updatedSets[index].isCompleted,
+      };
       
-    updatedSets[index] = {
-      ...updatedSets[index],
-      isCompleted: !updatedSets[index].isCompleted,
-    };
-    
-    onUpdate({
-      ...exerciseLog,
-      sets: updatedSets,
-    });
+      onUpdate({
+        ...exerciseLog,
+        sets: updatedSets,
+      });
+    } else {
+      const updatedSets = [...exerciseLog.sets] as CardioSet[];
+      updatedSets[index] = {
+        ...updatedSets[index],
+        isCompleted: !updatedSets[index].isCompleted,
+      };
+      
+      onUpdate({
+        ...exerciseLog,
+        sets: updatedSets,
+      });
+    }
   };
   
   const handleAddSet = () => {
