@@ -72,18 +72,20 @@ export const SupplementsList: React.FC<SupplementsListProps> = ({ date }) => {
       <SupplementModal
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onSave={(supplement) => {
+        onSave={(supplementData) => {
           if (editingSupplement) {
             updateSupplement({
-              ...supplement,
+              ...supplementData,
               id: editingSupplement.id,
+              date: editingSupplement.date,
+              taken: editingSupplement.taken
             });
           } else {
             addSupplement({
-              ...supplement,
+              ...supplementData,
               id: Date.now().toString(),
               date,
-              taken: false,
+              taken: false
             });
           }
           setShowAddModal(false);
