@@ -36,12 +36,12 @@ export const useUserStore = create<UserState>()(
       updateWeight: (weight) => set((state) => {
         if (!state.profile) return { profile: null };
         
-        return { 
-          profile: {
-            ...state.profile,
-            currentWeight: weight
-          }
+        const updatedProfile = {
+          ...state.profile,
+          currentWeight: weight
         };
+        
+        return { profile: updatedProfile };
       }),
       
       updateDailyStats: (stats) => set((state) => ({
@@ -67,13 +67,13 @@ export const useUserStore = create<UserState>()(
             newHeight = Math.round(newHeight * 2.54);
           }
           
-          return { 
-            profile: {
-              ...state.profile,
-              heightUnit: newUnit,
-              height: newHeight
-            }
+          const updatedProfile = {
+            ...state.profile,
+            heightUnit: newUnit as 'cm' | 'in',
+            height: newHeight
           };
+          
+          return { profile: updatedProfile };
         } else {
           const currentUnit = state.profile.weightUnit;
           const newUnit = currentUnit === 'kg' ? 'lb' : 'kg';
@@ -89,14 +89,14 @@ export const useUserStore = create<UserState>()(
             newGoalWeight = Math.round(newGoalWeight / 2.20462);
           }
           
-          return { 
-            profile: {
-              ...state.profile,
-              weightUnit: newUnit,
-              currentWeight: newCurrentWeight,
-              goalWeight: newGoalWeight
-            }
+          const updatedProfile = {
+            ...state.profile,
+            weightUnit: newUnit as 'kg' | 'lb',
+            currentWeight: newCurrentWeight,
+            goalWeight: newGoalWeight
           };
+          
+          return { profile: updatedProfile };
         }
       }),
       
@@ -179,15 +179,15 @@ export const useUserStore = create<UserState>()(
         // Carbs: Remaining calories
         const carbsGoal = Math.round((calorieGoal - (proteinGoal * 4) - (fatGoal * 9)) / 4);
         
-        return {
-          profile: {
-            ...state.profile,
-            calorieGoal: Math.round(calorieGoal),
-            proteinGoal: Math.round(proteinGoal),
-            carbsGoal,
-            fatGoal
-          }
+        const updatedProfile = {
+          ...state.profile,
+          calorieGoal: Math.round(calorieGoal),
+          proteinGoal: Math.round(proteinGoal),
+          carbsGoal,
+          fatGoal
         };
+        
+        return { profile: updatedProfile };
       }),
       
       addCaloriesBurned: (calories) => set((state) => {

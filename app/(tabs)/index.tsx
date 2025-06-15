@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -15,6 +15,10 @@ export default function HomeScreen() {
   const getMealEntriesByDate = useNutritionStore(state => state.getMealEntriesByDate);
   const getRecentWorkoutSessions = useWorkoutStore(state => state.getRecentWorkoutSessions);
   
+  const colorScheme = useColorScheme() || 'dark';
+  const colors = Colors[colorScheme];
+  
+  // Use current date for tracking
   const today = new Date().toISOString().split('T')[0];
   const todaysMeals = getMealEntriesByDate(today);
   const recentWorkouts = getRecentWorkoutSessions(3);
@@ -30,12 +34,12 @@ export default function HomeScreen() {
   const proteinGoal = profile?.proteinGoal || 150;
   
   return (
-    <SafeAreaView style={styles.container} edges={['right', 'left']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.greeting}>
+        <Text style={[styles.greeting, { color: colors.text }]}>
           Hello, {profile?.name || 'Fitness Enthusiast'}
         </Text>
-        <Text style={styles.date}>
+        <Text style={[styles.date, { color: colors.subtext }]}>
           {new Date().toLocaleDateString('en-US', { 
             weekday: 'long', 
             month: 'long', 
@@ -45,34 +49,34 @@ export default function HomeScreen() {
         
         {/* Daily Summary Card */}
         <Card style={styles.summaryCard}>
-          <Text style={styles.cardTitle}>Today's Progress</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Today's Progress</Text>
           
           <View style={styles.progressSection}>
-            <Text style={styles.progressLabel}>Calories</Text>
-            <View style={styles.progressBarContainer}>
+            <Text style={[styles.progressLabel, { color: colors.text }]}>Calories</Text>
+            <View style={[styles.progressBarContainer, { backgroundColor: colors.neutral }]}>
               <View 
                 style={[
                   styles.progressBar, 
-                  { width: `${Math.min(100, (caloriesConsumed / calorieGoal) * 100)}%` }
+                  { width: `${Math.min(100, (caloriesConsumed / calorieGoal) * 100)}%`, backgroundColor: colors.primary }
                 ]} 
               />
             </View>
-            <Text style={styles.progressText}>
+            <Text style={[styles.progressText, { color: colors.subtext }]}>
               {Math.round(caloriesConsumed)} / {calorieGoal} kcal
             </Text>
           </View>
           
           <View style={styles.progressSection}>
-            <Text style={styles.progressLabel}>Protein</Text>
-            <View style={styles.progressBarContainer}>
+            <Text style={[styles.progressLabel, { color: colors.text }]}>Protein</Text>
+            <View style={[styles.progressBarContainer, { backgroundColor: colors.neutral }]}>
               <View 
                 style={[
                   styles.progressBar, 
-                  { width: `${Math.min(100, (proteinConsumed / proteinGoal) * 100)}%` }
+                  { width: `${Math.min(100, (proteinConsumed / proteinGoal) * 100)}%`, backgroundColor: colors.primary }
                 ]} 
               />
             </View>
-            <Text style={styles.progressText}>
+            <Text style={[styles.progressText, { color: colors.subtext }]}>
               {Math.round(proteinConsumed)} / {Math.round(proteinGoal)} g
             </Text>
           </View>
@@ -93,9 +97,9 @@ export default function HomeScreen() {
         
         {/* Recent Workouts */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Workouts</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Workouts</Text>
           <Text 
-            style={styles.seeAllText}
+            style={[styles.seeAllText, { color: colors.primary }]}
             onPress={() => router.push('/workout')}
           >
             See All
@@ -106,22 +110,22 @@ export default function HomeScreen() {
           recentWorkouts.map(workout => (
             <Card key={workout.id} style={styles.workoutCard}>
               <View style={styles.workoutHeader}>
-                <Text style={styles.workoutName}>{workout.name}</Text>
-                <Text style={styles.workoutDate}>
+                <Text style={[styles.workoutName, { color: colors.text }]}>{workout.name}</Text>
+                <Text style={[styles.workoutDate, { color: colors.subtext }]}>
                   {new Date(workout.date).toLocaleDateString('en-US', { 
                     month: 'short', 
                     day: 'numeric' 
                   })}
                 </Text>
               </View>
-              <Text style={styles.workoutStats}>
+              <Text style={[styles.workoutStats, { color: colors.subtext }]}>
                 {workout.exercises.length} exercises • {workout.duration} min
               </Text>
             </Card>
           ))
         ) : (
           <Card style={styles.emptyCard}>
-            <Text style={styles.emptyText}>No recent workouts</Text>
+            <Text style={[styles.emptyText, { color: colors.subtext }]}>No recent workouts</Text>
             <Button 
               title="Start Your First Workout" 
               onPress={() => router.push('/workout')}
@@ -131,12 +135,15 @@ export default function HomeScreen() {
         )}
         
         {/* Quick Actions */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
         <View style={styles.quickActions}>
-          <TouchableOpacity onPress={() => router.push('/nutrition')}>
+          <TouchableOpacity 
+            style={styles.quickActionWrapper}
+            onPress={() => router.push('/nutrition')}
+          >
             <Card style={styles.quickActionCard}>
-              <Text style={styles.quickActionTitle}>Track Nutrition</Text>
-              <Text style={styles.quickActionSubtitle}>Log your meals and supplements</Text>
+              <Text style={[styles.quickActionTitle, { color: colors.text }]}>Track Nutrition</Text>
+              <Text style={[styles.quickActionSubtitle, { color: colors.subtext }]}>Log your meals and supplements</Text>
               <Button 
                 title="Go" 
                 size="small" 
@@ -146,10 +153,13 @@ export default function HomeScreen() {
             </Card>
           </TouchableOpacity>
           
-          <TouchableOpacity onPress={() => router.push('/profile')}>
+          <TouchableOpacity 
+            style={styles.quickActionWrapper}
+            onPress={() => router.push('/profile')}
+          >
             <Card style={styles.quickActionCard}>
-              <Text style={styles.quickActionTitle}>Update Weight</Text>
-              <Text style={styles.quickActionSubtitle}>Keep your progress on track</Text>
+              <Text style={[styles.quickActionTitle, { color: colors.text }]}>Update Weight</Text>
+              <Text style={[styles.quickActionSubtitle, { color: colors.subtext }]}>Keep your progress on track</Text>
               <Button 
                 title="Go" 
                 size="small" 
@@ -159,10 +169,13 @@ export default function HomeScreen() {
             </Card>
           </TouchableOpacity>
           
-          <TouchableOpacity onPress={() => router.push('/education')}>
+          <TouchableOpacity 
+            style={styles.quickActionWrapper}
+            onPress={() => router.push('/education')}
+          >
             <Card style={styles.quickActionCard}>
-              <Text style={styles.quickActionTitle}>Learn</Text>
-              <Text style={styles.quickActionSubtitle}>Latest bodybuilding research</Text>
+              <Text style={[styles.quickActionTitle, { color: colors.text }]}>Learn</Text>
+              <Text style={[styles.quickActionSubtitle, { color: colors.subtext }]}>Latest bodybuilding research</Text>
               <Button 
                 title="Go" 
                 size="small" 
@@ -180,7 +193,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark.background,
   },
   scrollContent: {
     padding: 16,
@@ -188,12 +200,10 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Colors.dark.text,
     marginBottom: 4,
   },
   date: {
     fontSize: 16,
-    color: Colors.dark.subtext,
     marginBottom: 24,
   },
   summaryCard: {
@@ -202,7 +212,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.dark.text,
     marginBottom: 16,
   },
   progressSection: {
@@ -210,24 +219,20 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 16,
-    color: Colors.dark.text,
     marginBottom: 8,
   },
   progressBarContainer: {
     height: 8,
-    backgroundColor: '#2A2A2A',
     borderRadius: 4,
     marginBottom: 4,
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    backgroundColor: Colors.dark.primary,
     borderRadius: 4,
   },
   progressText: {
     fontSize: 14,
-    color: Colors.dark.subtext,
     textAlign: 'right',
   },
   buttonRow: {
@@ -248,12 +253,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: Colors.dark.text,
     marginBottom: 12,
   },
   seeAllText: {
     fontSize: 16,
-    color: Colors.dark.primary,
   },
   workoutCard: {
     marginBottom: 12,
@@ -267,15 +270,12 @@ const styles = StyleSheet.create({
   workoutName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: Colors.dark.text,
   },
   workoutDate: {
     fontSize: 14,
-    color: Colors.dark.subtext,
   },
   workoutStats: {
     fontSize: 14,
-    color: Colors.dark.subtext,
   },
   emptyCard: {
     alignItems: 'center',
@@ -284,7 +284,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: Colors.dark.subtext,
     marginBottom: 16,
   },
   emptyButton: {
@@ -296,20 +295,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 24,
   },
-  quickActionCard: {
+  quickActionWrapper: {
     width: '100%',
     marginBottom: 12,
+  },
+  quickActionCard: {
+    width: '100%',
     padding: 16,
   },
   quickActionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: Colors.dark.text,
     marginBottom: 4,
   },
   quickActionSubtitle: {
     fontSize: 14,
-    color: Colors.dark.subtext,
     marginBottom: 12,
   },
   quickActionButton: {

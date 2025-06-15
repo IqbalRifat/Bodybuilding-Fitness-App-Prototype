@@ -37,10 +37,13 @@ export const WeightUpdate: React.FC<WeightUpdateProps> = ({ date }) => {
     const weightValue = parseFloat(weight);
     if (isNaN(weightValue)) return;
     
+    // Use the current date when adding a new weight entry
+    const currentDate = new Date().toISOString().split('T')[0];
+    
     addWeightEntry({
       id: Date.now().toString(),
       weight: weightValue,
-      date,
+      date: currentDate,
     });
     
     updateWeight(weightValue);

@@ -76,6 +76,9 @@ export const SupplementsList: React.FC<SupplementsListProps> = ({ date }) => {
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSave={(supplementData) => {
+          // Use current date when adding a new supplement
+          const currentDate = new Date().toISOString().split('T')[0];
+          
           if (editingSupplement) {
             updateSupplement({
               ...supplementData,
@@ -87,7 +90,7 @@ export const SupplementsList: React.FC<SupplementsListProps> = ({ date }) => {
             addSupplement({
               ...supplementData,
               id: Date.now().toString(),
-              date,
+              date: currentDate,
               taken: false
             });
           }

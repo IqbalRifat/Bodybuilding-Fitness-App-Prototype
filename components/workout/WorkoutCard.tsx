@@ -17,7 +17,7 @@ export const WorkoutCard: React.FC<WorkoutCardProps> = ({ template, onPress }) =
         <Text style={styles.description}>{template.description}</Text>
         
         <View style={styles.exerciseList}>
-          {template.exercises.slice(0, 3).map((exercise, index) => (
+          {template.exercises.map((exercise, index) => (
             <View key={exercise.exerciseId} style={styles.exerciseItem}>
               <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
               <Text style={styles.exerciseDetails}>
@@ -25,12 +25,6 @@ export const WorkoutCard: React.FC<WorkoutCardProps> = ({ template, onPress }) =
               </Text>
             </View>
           ))}
-          
-          {template.exercises.length > 3 && (
-            <Text style={styles.moreExercises}>
-              +{template.exercises.length - 3} more exercises
-            </Text>
-          )}
         </View>
         
         <View style={styles.startButtonContainer}>
@@ -60,6 +54,7 @@ const styles = StyleSheet.create({
   },
   exerciseList: {
     marginBottom: 16,
+    maxHeight: 300,
   },
   exerciseItem: {
     marginBottom: 8,
@@ -71,11 +66,6 @@ const styles = StyleSheet.create({
   exerciseDetails: {
     fontSize: 14,
     color: Colors.dark.subtext,
-  },
-  moreExercises: {
-    fontSize: 14,
-    color: Colors.dark.primary,
-    marginTop: 4,
   },
   startButtonContainer: {
     alignItems: 'center',
