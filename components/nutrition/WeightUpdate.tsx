@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, useColorScheme } from 'react-native';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -23,6 +23,9 @@ export const WeightUpdate: React.FC<WeightUpdateProps> = ({ date }) => {
   const [weight, setWeight] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  
+  const colorScheme = useColorScheme() || 'dark';
+  const colors = Colors[colorScheme];
   
   const weightUnit = profile?.weightUnit || 'kg';
   const currentWeight = getLatestWeight() || 0;
@@ -79,8 +82,10 @@ export const WeightUpdate: React.FC<WeightUpdateProps> = ({ date }) => {
   return (
     <Card style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Current Weight</Text>
-        <Text style={styles.weight}>{currentWeight} {weightUnit}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Current Weight</Text>
+        <Text style={[styles.weight, { color: colors.primary }]}>
+          {currentWeight} {weightUnit}
+        </Text>
       </View>
       
       {isEditing ? (
@@ -95,7 +100,7 @@ export const WeightUpdate: React.FC<WeightUpdateProps> = ({ date }) => {
           <View style={styles.buttonRow}>
             <Button 
               title="Cancel" 
-              variant="outline" 
+              variant="neutral" 
               style={styles.cancelButton}
               onPress={() => {
                 setIsEditing(false);
@@ -104,6 +109,7 @@ export const WeightUpdate: React.FC<WeightUpdateProps> = ({ date }) => {
             />
             <Button 
               title="Save" 
+              variant="secondary"
               onPress={handleUpdateWeight}
               style={styles.saveButton}
             />
@@ -118,7 +124,7 @@ export const WeightUpdate: React.FC<WeightUpdateProps> = ({ date }) => {
           />
           <Button 
             title={showHistory ? "Hide History" : "Show History"} 
-            variant="outline"
+            variant="neutral"
             onPress={() => setShowHistory(!showHistory)}
             style={styles.historyButton}
           />
@@ -126,30 +132,36 @@ export const WeightUpdate: React.FC<WeightUpdateProps> = ({ date }) => {
       )}
       
       {showHistory && (
-        <View style={styles.historyContainer}>
-          <Text style={styles.historyTitle}>Weight History</Text>
+        <View style={[styles.historyContainer, { borderTopColor: colors.border }]}>
+          <Text style={[styles.historyTitle, { color: colors.text }]}>Weight History</Text>
           {weightEntries.length > 0 ? (
             <FlatList
               data={weightEntries}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-                <View style={styles.historyItem}>
+                <View style={[styles.historyItem, { borderBottomColor: colors.border }]}>
                   <View>
-                    <Text style={styles.historyDate}>{formatDate(item.date)}</Text>
-                    <Text style={styles.historyWeight}>{item.weight} {weightUnit}</Text>
+                    <Text style={[styles.historyDate, { color: colors.subtext }]}>
+                      {formatDate(item.date)}
+                    </Text>
+                    <Text style={[styles.historyWeight, { color: colors.text }]}>
+                      {item.weight} {weightUnit}
+                    </Text>
                   </View>
                   <TouchableOpacity 
                     style={styles.deleteButton}
                     onPress={() => handleDeleteEntry(item.id)}
                   >
-                    <Trash2 size={18} color={Colors.dark.error} />
+                    <Trash2 size={18} color={colors.error} />
                   </TouchableOpacity>
                 </View>
               )}
               style={styles.historyList}
             />
           ) : (
-            <Text style={styles.emptyText}>No weight entries yet</Text>
+            <Text style={[styles.emptyText, { color: colors.subtext }]}>
+              No weight entries yet
+            </Text>
           )}
         </View>
       )}
@@ -170,12 +182,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.dark.text,
   },
   weight: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.dark.primary,
   },
   buttonContainer: {
     gap: 12,
@@ -206,13 +216,11 @@ const styles = StyleSheet.create({
   historyContainer: {
     marginTop: 16,
     borderTopWidth: 1,
-    borderTopColor: Colors.dark.border,
     paddingTop: 16,
   },
   historyTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: Colors.dark.text,
     marginBottom: 12,
   },
   historyList: {
@@ -224,22 +232,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.dark.border,
   },
   historyDate: {
     fontSize: 14,
-    color: Colors.dark.subtext,
   },
   historyWeight: {
     fontSize: 16,
-    color: Colors.dark.text,
     fontWeight: '500',
   },
   deleteButton: {
     padding: 8,
   },
   emptyText: {
-    color: Colors.dark.subtext,
     textAlign: 'center',
     paddingVertical: 16,
   },

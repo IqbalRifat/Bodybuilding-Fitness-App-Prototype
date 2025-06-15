@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 import { Plus, Trash2 } from 'lucide-react-native';
 import { ExerciseLog, Set, CardioSet } from '@/types/workout';
 import { Input } from '@/components/ui/Input';
@@ -15,6 +15,8 @@ export const ExerciseLogItem: React.FC<ExerciseLogItemProps> = ({
   onUpdate 
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const colorScheme = useColorScheme() || 'dark';
+  const colors = Colors[colorScheme];
   
   const handleStrengthSetUpdate = (index: number, field: 'weight' | 'reps', value: string) => {
     const numValue = parseInt(value);
@@ -79,7 +81,7 @@ export const ExerciseLogItem: React.FC<ExerciseLogItemProps> = ({
         ...exerciseLog,
         sets: updatedSets,
       });
-    } else {
+    } else if (exerciseLog.exerciseType === 'cardio') {
       const updatedSets = [...exerciseLog.sets] as CardioSet[];
       updatedSets[index] = {
         ...updatedSets[index],
@@ -107,7 +109,7 @@ export const ExerciseLogItem: React.FC<ExerciseLogItemProps> = ({
         ...exerciseLog,
         sets: [...currentSets, newSet],
       });
-    } else {
+    } else if (exerciseLog.exerciseType === 'cardio') {
       const currentSets = exerciseLog.sets as CardioSet[];
       const newSet: CardioSet = {
         id: `${Date.now()}-${exerciseLog.exerciseId}-${currentSets.length}`,
@@ -135,7 +137,7 @@ export const ExerciseLogItem: React.FC<ExerciseLogItemProps> = ({
         ...exerciseLog,
         sets: updatedSets,
       });
-    } else {
+    } else if (exerciseLog.exerciseType === 'cardio') {
       const updatedSets = [...exerciseLog.sets] as CardioSet[];
       updatedSets.splice(index, 1);
       
@@ -149,36 +151,40 @@ export const ExerciseLogItem: React.FC<ExerciseLogItemProps> = ({
   const completedSets = exerciseLog.sets.filter(set => set.isCompleted).length;
   
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.card }]}>
       <TouchableOpacity 
         style={styles.header} 
         onPress={() => setExpanded(!expanded)}
         activeOpacity={0.7}
       >
         <View>
-          <Text style={styles.exerciseName}>{exerciseLog.exerciseName}</Text>
-          <Text style={styles.setCount}>
+          <Text style={[styles.exerciseName, { color: colors.text }]}>
+            {exerciseLog.exerciseName}
+          </Text>
+          <Text style={[styles.setCount, { color: colors.subtext }]}>
             {completedSets}/{exerciseLog.sets.length} sets completed
           </Text>
         </View>
-        <Text style={styles.expandText}>{expanded ? 'Hide' : 'Show'}</Text>
+        <Text style={[styles.expandText, { color: colors.primary }]}>
+          {expanded ? 'Hide' : 'Show'}
+        </Text>
       </TouchableOpacity>
       
       {expanded && (
         <View style={styles.setsContainer}>
           {exerciseLog.exerciseType === 'strength' ? (
             <>
-              <View style={styles.setHeader}>
-                <Text style={styles.setHeaderText}>Set</Text>
-                <Text style={styles.setHeaderText}>Weight</Text>
-                <Text style={styles.setHeaderText}>Reps</Text>
-                <Text style={styles.setHeaderText}>Done</Text>
-                <Text style={styles.setHeaderText}></Text>
+              <View style={[styles.setHeader, { borderBottomColor: colors.border }]}>
+                <Text style={[styles.setHeaderText, { color: colors.subtext }]}>Set</Text>
+                <Text style={[styles.setHeaderText, { color: colors.subtext }]}>Weight</Text>
+                <Text style={[styles.setHeaderText, { color: colors.subtext }]}>Reps</Text>
+                <Text style={[styles.setHeaderText, { color: colors.subtext }]}>Done</Text>
+                <Text style={[styles.setHeaderText, { color: colors.subtext }]}></Text>
               </View>
               
               {(exerciseLog.sets as Set[]).map((set, index) => (
                 <View key={set.id} style={styles.setRow}>
-                  <Text style={styles.setNumber}>{index + 1}</Text>
+                  <Text style={[styles.setNumber, { color: colors.text }]}>{index + 1}</Text>
                   
                   <Input
                     value={set.weight > 0 ? set.weight.toString() : ''}
@@ -201,11 +207,12 @@ export const ExerciseLogItem: React.FC<ExerciseLogItemProps> = ({
                   <TouchableOpacity 
                     style={[
                       styles.completeButton,
-                      set.isCompleted ? styles.completeButtonActive : null
+                      { backgroundColor: colors.neutral },
+                      set.isCompleted ? { backgroundColor: colors.primary } : null
                     ]}
                     onPress={() => handleSetComplete(index)}
                   >
-                    <Text style={styles.completeButtonText}>
+                    <Text style={[styles.completeButtonText, { color: colors.text }]}>
                       {set.isCompleted ? '✓' : ''}
                     </Text>
                   </TouchableOpacity>
@@ -217,7 +224,7 @@ export const ExerciseLogItem: React.FC<ExerciseLogItemProps> = ({
                   >
                     <Trash2 
                       size={16} 
-                      color={exerciseLog.sets.length <= 1 ? Colors.dark.border : Colors.dark.error} 
+                      color={exerciseLog.sets.length <= 1 ? colors.border : colors.error} 
                     />
                   </TouchableOpacity>
                 </View>
@@ -225,18 +232,18 @@ export const ExerciseLogItem: React.FC<ExerciseLogItemProps> = ({
             </>
           ) : (
             <>
-              <View style={styles.setHeader}>
-                <Text style={styles.setHeaderText}>Set</Text>
-                <Text style={styles.setHeaderText}>Duration (min)</Text>
-                <Text style={styles.setHeaderText}>Distance (km)</Text>
-                <Text style={styles.setHeaderText}>Done</Text>
-                <Text style={styles.setHeaderText}></Text>
+              <View style={[styles.setHeader, { borderBottomColor: colors.border }]}>
+                <Text style={[styles.setHeaderText, { color: colors.subtext }]}>Set</Text>
+                <Text style={[styles.setHeaderText, { color: colors.subtext }]}>Duration (min)</Text>
+                <Text style={[styles.setHeaderText, { color: colors.subtext }]}>Distance (km)</Text>
+                <Text style={[styles.setHeaderText, { color: colors.subtext }]}>Done</Text>
+                <Text style={[styles.setHeaderText, { color: colors.subtext }]}></Text>
               </View>
               
               {(exerciseLog.sets as CardioSet[]).map((set, index) => (
                 <View key={set.id}>
                   <View style={styles.setRow}>
-                    <Text style={styles.setNumber}>{index + 1}</Text>
+                    <Text style={[styles.setNumber, { color: colors.text }]}>{index + 1}</Text>
                     
                     <Input
                       value={set.duration > 0 ? set.duration.toString() : ''}
@@ -259,11 +266,12 @@ export const ExerciseLogItem: React.FC<ExerciseLogItemProps> = ({
                     <TouchableOpacity 
                       style={[
                         styles.completeButton,
-                        set.isCompleted ? styles.completeButtonActive : null
+                        { backgroundColor: colors.neutral },
+                        set.isCompleted ? { backgroundColor: colors.primary } : null
                       ]}
                       onPress={() => handleSetComplete(index)}
                     >
-                      <Text style={styles.completeButtonText}>
+                      <Text style={[styles.completeButtonText, { color: colors.text }]}>
                         {set.isCompleted ? '✓' : ''}
                       </Text>
                     </TouchableOpacity>
@@ -275,40 +283,43 @@ export const ExerciseLogItem: React.FC<ExerciseLogItemProps> = ({
                     >
                       <Trash2 
                         size={16} 
-                        color={exerciseLog.sets.length <= 1 ? Colors.dark.border : Colors.dark.error} 
+                        color={exerciseLog.sets.length <= 1 ? colors.border : colors.error} 
                       />
                     </TouchableOpacity>
                   </View>
                   
                   <View style={styles.intensityContainer}>
-                    <Text style={styles.intensityLabel}>Intensity:</Text>
+                    <Text style={[styles.intensityLabel, { color: colors.subtext }]}>Intensity:</Text>
                     <View style={styles.intensityButtons}>
                       <TouchableOpacity 
                         style={[
                           styles.intensityButton,
-                          set.intensity === 'low' ? styles.intensityButtonActive : null
+                          { backgroundColor: colors.neutral },
+                          set.intensity === 'low' ? { backgroundColor: colors.primary } : null
                         ]}
                         onPress={() => handleIntensityUpdate(index, 'low')}
                       >
-                        <Text style={styles.intensityButtonText}>Low</Text>
+                        <Text style={[styles.intensityButtonText, { color: colors.text }]}>Low</Text>
                       </TouchableOpacity>
                       <TouchableOpacity 
                         style={[
                           styles.intensityButton,
-                          set.intensity === 'medium' ? styles.intensityButtonActive : null
+                          { backgroundColor: colors.neutral },
+                          set.intensity === 'medium' ? { backgroundColor: colors.primary } : null
                         ]}
                         onPress={() => handleIntensityUpdate(index, 'medium')}
                       >
-                        <Text style={styles.intensityButtonText}>Medium</Text>
+                        <Text style={[styles.intensityButtonText, { color: colors.text }]}>Medium</Text>
                       </TouchableOpacity>
                       <TouchableOpacity 
                         style={[
                           styles.intensityButton,
-                          set.intensity === 'high' ? styles.intensityButtonActive : null
+                          { backgroundColor: colors.neutral },
+                          set.intensity === 'high' ? { backgroundColor: colors.primary } : null
                         ]}
                         onPress={() => handleIntensityUpdate(index, 'high')}
                       >
-                        <Text style={styles.intensityButtonText}>High</Text>
+                        <Text style={[styles.intensityButtonText, { color: colors.text }]}>High</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -318,11 +329,11 @@ export const ExerciseLogItem: React.FC<ExerciseLogItemProps> = ({
           )}
           
           <TouchableOpacity 
-            style={styles.addSetButton}
+            style={[styles.addSetButton, { backgroundColor: colors.neutral }]}
             onPress={handleAddSet}
           >
-            <Plus size={16} color={Colors.dark.text} />
-            <Text style={styles.addSetText}>Add Set</Text>
+            <Plus size={16} color={colors.text} />
+            <Text style={[styles.addSetText, { color: colors.text }]}>Add Set</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -332,7 +343,6 @@ export const ExerciseLogItem: React.FC<ExerciseLogItemProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.dark.card,
     borderRadius: 12,
     marginBottom: 16,
     overflow: 'hidden',
@@ -346,16 +356,13 @@ const styles = StyleSheet.create({
   exerciseName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.dark.text,
   },
   setCount: {
     fontSize: 14,
-    color: Colors.dark.subtext,
     marginTop: 4,
   },
   expandText: {
     fontSize: 14,
-    color: Colors.dark.primary,
     fontWeight: '600',
   },
   setsContainer: {
@@ -367,12 +374,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.dark.border,
     marginBottom: 8,
   },
   setHeaderText: {
     fontSize: 14,
-    color: Colors.dark.subtext,
     flex: 1,
     textAlign: 'center',
   },
@@ -383,7 +388,6 @@ const styles = StyleSheet.create({
   },
   setNumber: {
     fontSize: 16,
-    color: Colors.dark.text,
     width: 30,
     textAlign: 'center',
   },
@@ -400,16 +404,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 8,
-    backgroundColor: '#2A2A2A',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
   },
-  completeButtonActive: {
-    backgroundColor: Colors.dark.primary,
-  },
   completeButtonText: {
-    color: Colors.dark.text,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -425,7 +424,6 @@ const styles = StyleSheet.create({
   },
   intensityLabel: {
     fontSize: 14,
-    color: Colors.dark.subtext,
     marginBottom: 8,
   },
   intensityButtons: {
@@ -433,29 +431,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   intensityButton: {
-    backgroundColor: '#2A2A2A',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 8,
   },
-  intensityButtonActive: {
-    backgroundColor: Colors.dark.primary,
-  },
   intensityButtonText: {
-    color: Colors.dark.text,
     fontSize: 14,
   },
   addSetButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2A2A2A',
     paddingVertical: 10,
     borderRadius: 8,
     marginTop: 8,
   },
   addSetText: {
-    color: Colors.dark.text,
     marginLeft: 8,
     fontWeight: '500',
   },

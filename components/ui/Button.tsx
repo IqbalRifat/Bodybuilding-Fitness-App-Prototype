@@ -7,13 +7,14 @@ import {
   ViewStyle,
   TextStyle,
   TouchableOpacityProps,
-  View
+  View,
+  useColorScheme
 } from 'react-native';
 import Colors from '@/constants/colors';
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
-  variant?: 'primary' | 'secondary' | 'outline' | 'text';
+  variant?: 'primary' | 'secondary' | 'neutral' | 'outline' | 'text';
   size?: 'small' | 'medium' | 'large';
   isLoading?: boolean;
   style?: ViewStyle;
@@ -31,17 +32,60 @@ export const Button: React.FC<ButtonProps> = ({
   icon,
   ...props
 }) => {
+  const colorScheme = useColorScheme() || 'dark';
+  const colors = Colors[colorScheme];
+
+  const getButtonStyle = () => {
+    switch (variant) {
+      case 'primary':
+        return { backgroundColor: colors.primary };
+      case 'secondary':
+        return { backgroundColor: colors.secondary };
+      case 'neutral':
+        return { backgroundColor: colors.neutral };
+      case 'outline':
+        return { 
+          backgroundColor: 'transparent',
+          borderWidth: 1,
+          borderColor: colors.primary
+        };
+      case 'text':
+        return { backgroundColor: 'transparent' };
+      default:
+        return { backgroundColor: colors.primary };
+    }
+  };
+
+  const getTextStyle = () => {
+    switch (variant) {
+      case 'primary':
+        return { color: '#FFFFFF' };
+      case 'secondary':
+        return { color: colorScheme === 'dark' ? '#111111' : '#FFFFFF' };
+      case 'neutral':
+        return { color: colors.neutralText };
+      case 'outline':
+        return { color: colors.primary };
+      case 'text':
+        return { color: colors.primary };
+      default:
+        return { color: '#FFFFFF' };
+    }
+  };
+
   const buttonStyles = [
     styles.button,
-    styles[`${variant}Button`],
     styles[`${size}Button`],
+    getButtonStyle(),
+    props.disabled && styles.disabledButton,
     style,
   ];
 
   const textStyles = [
     styles.text,
-    styles[`${variant}Text`],
     styles[`${size}Text`],
+    getTextStyle(),
+    props.disabled && styles.disabledText,
     textStyle,
   ];
 
@@ -53,7 +97,7 @@ export const Button: React.FC<ButtonProps> = ({
     >
       {isLoading ? (
         <ActivityIndicator 
-          color={variant === 'primary' ? '#000' : Colors.dark.primary} 
+          color={variant === 'outline' || variant === 'text' ? colors.primary : '#FFFFFF'} 
           size="small" 
         />
       ) : (
@@ -83,36 +127,11 @@ const styles = StyleSheet.create({
   iconContainer: {
     marginRight: 8,
   },
-  
-  // Variants
-  primaryButton: {
-    backgroundColor: Colors.dark.primary,
+  disabledButton: {
+    opacity: 0.5,
   },
-  primaryText: {
-    color: '#000',
-  },
-  
-  secondaryButton: {
-    backgroundColor: Colors.dark.secondary,
-  },
-  secondaryText: {
-    color: Colors.dark.background,
-  },
-  
-  outlineButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: Colors.dark.primary,
-  },
-  outlineText: {
-    color: Colors.dark.primary,
-  },
-  
-  textButton: {
-    backgroundColor: 'transparent',
-  },
-  textText: {
-    color: Colors.dark.primary,
+  disabledText: {
+    opacity: 0.8,
   },
   
   // Sizes

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, useColorScheme } from 'react-native';
 import { Card } from '@/components/ui/Card';
 import Colors from '@/constants/colors';
 import { useWorkoutStore } from '@/store/workout-store';
@@ -18,18 +18,21 @@ export const ExerciseProgressGraph: React.FC<ExerciseProgressGraphProps> = ({
   exerciseName,
 }) => {
   const [metric, setMetric] = useState<'weight' | 'volume'>('weight');
+  const colorScheme = useColorScheme() || 'dark';
+  const colors = Colors[colorScheme];
   
   const getExerciseMaxWeight = useWorkoutStore(state => state.getExerciseMaxWeight);
   const getExerciseTotalVolume = useWorkoutStore(state => state.getExerciseTotalVolume);
   
+  // Explicitly type the data to avoid TypeScript errors
   const weightData = getExerciseMaxWeight(exerciseId) as WeightData;
   const volumeData = getExerciseTotalVolume(exerciseId) as VolumeData;
   
   if (weightData.length === 0 && volumeData.length === 0) {
     return (
       <Card style={styles.container}>
-        <Text style={styles.title}>{exerciseName} Progress</Text>
-        <Text style={styles.noDataText}>
+        <Text style={[styles.title, { color: colors.text }]}>{exerciseName} Progress</Text>
+        <Text style={[styles.noDataText, { color: colors.subtext }]}>
           No progress data available yet. Complete workouts with this exercise to see your progress.
         </Text>
       </Card>
@@ -37,15 +40,12 @@ export const ExerciseProgressGraph: React.FC<ExerciseProgressGraphProps> = ({
   }
   
   // Use the appropriate data based on the selected metric
-  const labels = metric === 'weight' 
-    ? weightData.map(item => {
-        const date = new Date(item.date);
-        return `${date.getMonth() + 1}/${date.getDate()}`;
-      })
-    : volumeData.map(item => {
-        const date = new Date(item.date);
-        return `${date.getMonth() + 1}/${date.getDate()}`;
-      });
+  const currentData = metric === 'weight' ? weightData : volumeData;
+  
+  const labels = currentData.map(item => {
+    const date = new Date(item.date);
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  });
   
   // Extract values based on the selected metric
   const values = metric === 'weight' 
@@ -57,7 +57,7 @@ export const ExerciseProgressGraph: React.FC<ExerciseProgressGraphProps> = ({
     datasets: [
       {
         data: values.length > 0 ? values : [0],
-        color: () => Colors.dark.primary,
+        color: () => colors.primary,
         strokeWidth: 2,
       },
     ],
@@ -67,25 +67,35 @@ export const ExerciseProgressGraph: React.FC<ExerciseProgressGraphProps> = ({
   return (
     <Card style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{exerciseName} Progress</Text>
-        <View style={styles.metricToggle}>
+        <Text style={[styles.title, { color: colors.text }]}>{exerciseName} Progress</Text>
+        <View style={[styles.metricToggle, { backgroundColor: colors.neutral }]}>
           <TouchableOpacity
             style={[
               styles.metricButton,
-              metric === 'weight' ? styles.metricButtonActive : null
+              metric === 'weight' ? { backgroundColor: colors.primary } : null
             ]}
             onPress={() => setMetric('weight')}
           >
-            <Text style={styles.metricButtonText}>Weight</Text>
+            <Text style={[
+              styles.metricButtonText, 
+              { color: metric === 'weight' && colorScheme === 'dark' ? '#111111' : colors.text }
+            ]}>
+              Weight
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
               styles.metricButton,
-              metric === 'volume' ? styles.metricButtonActive : null
+              metric === 'volume' ? { backgroundColor: colors.primary } : null
             ]}
             onPress={() => setMetric('volume')}
           >
-            <Text style={styles.metricButtonText}>Volume</Text>
+            <Text style={[
+              styles.metricButtonText, 
+              { color: metric === 'volume' && colorScheme === 'dark' ? '#111111' : colors.text }
+            ]}>
+              Volume
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -96,19 +106,19 @@ export const ExerciseProgressGraph: React.FC<ExerciseProgressGraphProps> = ({
           width={Dimensions.get('window').width - 64}
           height={220}
           chartConfig={{
-            backgroundColor: Colors.dark.card,
-            backgroundGradientFrom: Colors.dark.card,
-            backgroundGradientTo: Colors.dark.card,
+            backgroundColor: colors.card,
+            backgroundGradientFrom: colors.card,
+            backgroundGradientTo: colors.card,
             decimalPlaces: 0,
-            color: (opacity = 1) => `rgba(170, 255, 0, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+            color: (opacity = 1) => `rgba(${colorScheme === 'dark' ? '0, 207, 255' : '0, 123, 255'}, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(${colorScheme === 'dark' ? '255, 255, 255' : '51, 51, 51'}, ${opacity})`,
             style: {
               borderRadius: 16,
             },
             propsForDots: {
               r: '6',
               strokeWidth: '2',
-              stroke: Colors.dark.primary,
+              stroke: colors.primary,
             },
           }}
           bezier
@@ -118,28 +128,28 @@ export const ExerciseProgressGraph: React.FC<ExerciseProgressGraphProps> = ({
       
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>
+          <Text style={[styles.statValue, { color: colors.text }]}>
             {values.length > 0 ? Math.max(...values) : 0}
           </Text>
-          <Text style={styles.statLabel}>
+          <Text style={[styles.statLabel, { color: colors.subtext }]}>
             Max {metric === 'weight' ? 'Weight' : 'Volume'}
           </Text>
         </View>
         
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>
+          <Text style={[styles.statValue, { color: colors.text }]}>
             {values.length > 0 ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0}
           </Text>
-          <Text style={styles.statLabel}>
+          <Text style={[styles.statLabel, { color: colors.subtext }]}>
             Average
           </Text>
         </View>
         
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>
+          <Text style={[styles.statValue, { color: colors.text }]}>
             {values.length}
           </Text>
-          <Text style={styles.statLabel}>
+          <Text style={[styles.statLabel, { color: colors.subtext }]}>
             Workouts
           </Text>
         </View>
@@ -161,11 +171,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.dark.text,
   },
   metricToggle: {
     flexDirection: 'row',
-    backgroundColor: '#2A2A2A',
     borderRadius: 8,
     overflow: 'hidden',
   },
@@ -173,11 +181,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
-  metricButtonActive: {
-    backgroundColor: Colors.dark.primary,
-  },
   metricButtonText: {
-    color: Colors.dark.text,
     fontWeight: '500',
   },
   chartContainer: {
@@ -197,16 +201,13 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.dark.text,
   },
   statLabel: {
     fontSize: 14,
-    color: Colors.dark.subtext,
     marginTop: 4,
   },
   noDataText: {
     fontSize: 14,
-    color: Colors.dark.subtext,
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 16,

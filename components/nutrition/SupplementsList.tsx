@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, useColorScheme } from 'react-native';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -22,6 +22,9 @@ export const SupplementsList: React.FC<SupplementsListProps> = ({ date }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingSupplement, setEditingSupplement] = useState<Supplement | null>(null);
   
+  const colorScheme = useColorScheme() || 'dark';
+  const colors = Colors[colorScheme];
+  
   const supplements = getSupplementsByDate(date);
   
   const handleAddSupplement = () => {
@@ -41,13 +44,13 @@ export const SupplementsList: React.FC<SupplementsListProps> = ({ date }) => {
   return (
     <Card style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Supplements</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Supplements</Text>
         <TouchableOpacity 
           style={styles.addButton}
           onPress={handleAddSupplement}
         >
-          <Plus size={20} color={Colors.dark.primary} />
-          <Text style={styles.addButtonText}>Add</Text>
+          <Plus size={20} color={colors.primary} />
+          <Text style={[styles.addButtonText, { color: colors.primary }]}>Add</Text>
         </TouchableOpacity>
       </View>
       
@@ -64,7 +67,7 @@ export const SupplementsList: React.FC<SupplementsListProps> = ({ date }) => {
           ))}
         </View>
       ) : (
-        <Text style={styles.emptyText}>
+        <Text style={[styles.emptyText, { color: colors.subtext }]}>
           No supplements added for today. Tap "Add" to track your supplements.
         </Text>
       )}
@@ -109,33 +112,46 @@ const SupplementItem: React.FC<SupplementItemProps> = ({
   onEdit,
   onDelete
 }) => {
+  const colorScheme = useColorScheme() || 'dark';
+  const colors = Colors[colorScheme];
+  
   return (
-    <View style={styles.supplementItem}>
+    <View style={[styles.supplementItem, { borderBottomColor: colors.border }]}>
       <View style={styles.supplementInfo}>
-        <Text style={styles.supplementName}>{supplement.name}</Text>
-        <Text style={styles.supplementDosage}>{supplement.dosage} • {supplement.timeOfDay}</Text>
+        <Text style={[styles.supplementName, { color: colors.text }]}>{supplement.name}</Text>
+        <Text style={[styles.supplementDosage, { color: colors.subtext }]}>
+          {supplement.dosage} • {supplement.timeOfDay}
+        </Text>
       </View>
       <View style={styles.supplementActions}>
         <TouchableOpacity 
           style={styles.actionButton}
           onPress={onEdit}
         >
-          <Edit2 size={16} color={Colors.dark.text} />
+          <Edit2 size={16} color={colors.text} />
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.actionButton}
           onPress={onDelete}
         >
-          <Trash2 size={16} color={Colors.dark.error} />
+          <Trash2 size={16} color={colors.error} />
         </TouchableOpacity>
         <TouchableOpacity 
           style={[
             styles.checkButton,
-            supplement.taken ? styles.checkButtonActive : null
+            { backgroundColor: colors.neutral },
+            supplement.taken ? { backgroundColor: colors.secondary } : null
           ]}
           onPress={onToggle}
         >
-          <Text style={styles.checkButtonText}>
+          <Text style={[
+            styles.checkButtonText, 
+            { 
+              color: supplement.taken && colorScheme === 'dark' 
+                ? '#111111' 
+                : colors.text 
+            }
+          ]}>
             {supplement.taken ? 'Taken' : 'Take'}
           </Text>
         </TouchableOpacity>
@@ -160,6 +176,9 @@ const SupplementModal: React.FC<SupplementModalProps> = ({
   const [name, setName] = useState(initialData?.name || '');
   const [dosage, setDosage] = useState(initialData?.dosage || '');
   const [timeOfDay, setTimeOfDay] = useState(initialData?.timeOfDay || 'Morning');
+  
+  const colorScheme = useColorScheme() || 'dark';
+  const colors = Colors[colorScheme];
   
   // Reset form when modal opens
   React.useEffect(() => {
@@ -192,13 +211,13 @@ const SupplementModal: React.FC<SupplementModalProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+        <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
               {initialData ? 'Edit Supplement' : 'Add Supplement'}
             </Text>
             <TouchableOpacity onPress={onClose}>
-              <X size={24} color={Colors.dark.text} />
+              <X size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
           
@@ -217,21 +236,27 @@ const SupplementModal: React.FC<SupplementModalProps> = ({
               onChangeText={setDosage}
             />
             
-            <Text style={styles.inputLabel}>Time of Day</Text>
+            <Text style={[styles.inputLabel, { color: colors.text }]}>Time of Day</Text>
             <View style={styles.timeOptions}>
               {timeOptions.map((time) => (
                 <TouchableOpacity
                   key={time}
                   style={[
                     styles.timeOption,
-                    timeOfDay === time ? styles.timeOptionActive : null
+                    { backgroundColor: colors.neutral },
+                    timeOfDay === time ? { backgroundColor: colors.primary } : null
                   ]}
                   onPress={() => setTimeOfDay(time)}
                 >
                   <Text 
                     style={[
                       styles.timeOptionText,
-                      timeOfDay === time ? styles.timeOptionTextActive : null
+                      { color: colors.text },
+                      timeOfDay === time && colorScheme === 'dark' 
+                        ? { color: '#111111', fontWeight: '600' } 
+                        : timeOfDay === time 
+                          ? { fontWeight: '600' } 
+                          : null
                     ]}
                   >
                     {time}
@@ -242,6 +267,7 @@ const SupplementModal: React.FC<SupplementModalProps> = ({
             
             <Button
               title="Save Supplement"
+              variant="secondary"
               onPress={handleSave}
               style={styles.saveButton}
               disabled={!name || !dosage}
@@ -266,14 +292,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.dark.text,
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   addButtonText: {
-    color: Colors.dark.primary,
     fontWeight: '600',
     marginLeft: 4,
   },
@@ -286,18 +310,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.dark.border,
   },
   supplementInfo: {
     flex: 1,
   },
   supplementName: {
     fontSize: 16,
-    color: Colors.dark.text,
   },
   supplementDosage: {
     fontSize: 14,
-    color: Colors.dark.subtext,
     marginTop: 2,
   },
   supplementActions: {
@@ -309,20 +330,14 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   checkButton: {
-    backgroundColor: '#2A2A2A',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
   },
-  checkButtonActive: {
-    backgroundColor: Colors.dark.primary,
-  },
   checkButtonText: {
-    color: Colors.dark.text,
     fontWeight: '600',
   },
   emptyText: {
-    color: Colors.dark.subtext,
     textAlign: 'center',
     paddingVertical: 16,
   },
@@ -332,7 +347,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: Colors.dark.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 16,
@@ -347,14 +361,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: Colors.dark.text,
   },
   modalBody: {
     maxHeight: '100%',
   },
   inputLabel: {
     fontSize: 16,
-    color: Colors.dark.text,
     marginBottom: 8,
   },
   timeOptions: {
@@ -364,21 +376,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   timeOption: {
-    backgroundColor: '#2A2A2A',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
     marginBottom: 8,
   },
-  timeOptionActive: {
-    backgroundColor: Colors.dark.primary,
-  },
   timeOptionText: {
-    color: Colors.dark.text,
-  },
-  timeOptionTextActive: {
-    color: '#000',
-    fontWeight: '600',
   },
   saveButton: {
     marginTop: 16,

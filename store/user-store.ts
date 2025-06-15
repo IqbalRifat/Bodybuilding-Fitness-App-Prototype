@@ -36,12 +36,12 @@ export const useUserStore = create<UserState>()(
       updateWeight: (weight) => set((state) => {
         if (!state.profile) return { profile: null };
         
-        const newProfile = { ...state.profile, currentWeight: weight };
-        
-        // Recalculate calorie goals when weight is updated
-        setTimeout(() => get().calculateCalorieGoals(), 0);
-        
-        return { profile: newProfile };
+        return { 
+          profile: {
+            ...state.profile,
+            currentWeight: weight
+          }
+        };
       }),
       
       updateDailyStats: (stats) => set((state) => ({
@@ -67,16 +67,13 @@ export const useUserStore = create<UserState>()(
             newHeight = Math.round(newHeight * 2.54);
           }
           
-          const newProfile = {
-            ...state.profile,
-            heightUnit: newUnit as 'cm' | 'in',
-            height: newHeight
+          return { 
+            profile: {
+              ...state.profile,
+              heightUnit: newUnit,
+              height: newHeight
+            }
           };
-          
-          // Recalculate calorie goals when unit is changed
-          setTimeout(() => get().calculateCalorieGoals(), 0);
-          
-          return { profile: newProfile };
         } else {
           const currentUnit = state.profile.weightUnit;
           const newUnit = currentUnit === 'kg' ? 'lb' : 'kg';
@@ -92,17 +89,14 @@ export const useUserStore = create<UserState>()(
             newGoalWeight = Math.round(newGoalWeight / 2.20462);
           }
           
-          const newProfile = {
-            ...state.profile,
-            weightUnit: newUnit as 'kg' | 'lb',
-            currentWeight: newCurrentWeight,
-            goalWeight: newGoalWeight
+          return { 
+            profile: {
+              ...state.profile,
+              weightUnit: newUnit,
+              currentWeight: newCurrentWeight,
+              goalWeight: newGoalWeight
+            }
           };
-          
-          // Recalculate calorie goals when unit is changed
-          setTimeout(() => get().calculateCalorieGoals(), 0);
-          
-          return { profile: newProfile };
         }
       }),
       
@@ -129,9 +123,9 @@ export const useUserStore = create<UserState>()(
         // Basic BMR calculation (Mifflin-St Jeor)
         let bmr = 0;
         if (gender === 'male') {
-          bmr = 10 * weightInKg + 6.25 * heightInCm - 5 * (age || 30) + 5;
+          bmr = 10 * weightInKg + 6.25 * heightInCm - 5 * age + 5;
         } else {
-          bmr = 10 * weightInKg + 6.25 * heightInCm - 5 * (age || 30) - 161;
+          bmr = 10 * weightInKg + 6.25 * heightInCm - 5 * age - 161;
         }
         
         // Activity multiplier based on activity level and training days

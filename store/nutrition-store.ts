@@ -115,7 +115,7 @@ export const useNutritionStore = create<NutritionState>()(
       })),
       
       addSupplement: (supplement) => set((state) => ({
-        supplements: [...state.supplements, { ...supplement, isCustom: true }]
+        supplements: [...state.supplements, supplement]
       })),
       
       removeSupplement: (id) => set((state) => ({
