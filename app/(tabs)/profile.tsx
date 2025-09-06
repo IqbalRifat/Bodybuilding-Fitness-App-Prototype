@@ -5,17 +5,25 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { WeightProgressGraph } from '@/components/nutrition/WeightProgressGraph';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 import Colors from '@/constants/colors';
 import { useUserStore } from '@/store/user-store';
 import { useNutritionStore } from '@/store/nutrition-store';
 import { UserProfile } from '@/types/user';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { router } from 'expo-router';
 
 export default function ProfileScreen() {
+  const { user, signOut } = useAuth();
   const profile = useUserStore(state => state.profile);
+  const supabaseProfile = useUserStore(state => state.supabaseProfile);
+  const weightEntries = useUserStore(state => state.weightEntries);
   const setProfile = useUserStore(state => state.setProfile);
   const toggleUnit = useUserStore(state => state.toggleUnit);
   const logout = useUserStore(state => state.logout);
-  const weightEntries = useNutritionStore(state => state.getWeightEntries());
+  const loadSupabaseProfile = useUserStore(state => state.loadSupabaseProfile);
+  const updateSupabaseProfile = useUserStore(state => state.updateSupabaseProfile);
+  const loadWeightEntries = useUserStore(state => state.loadWeightEntries);
   
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Partial<UserProfile>>({
@@ -31,42 +39,27 @@ export default function ProfileScreen() {
   });
   
   useEffect(() => {
-    if (profile) {
-      setFormData({
-        name: profile.name,
-        height: profile.height,
-        heightUnit: profile.heightUnit || 'cm',
-        currentWeight: profile.currentWeight,
-        weightUnit: profile.weightUnit || 'kg',
-        goalWeight: profile.goalWeight,
-        fitnessGoal: profile.fitnessGoal,
-        experienceLevel: profile.experienceLevel,
-        trainingDaysPerWeek: profile.trainingDaysPerWeek,
-      });
-    } else {
-      // Create a default profile if none exists
-      const defaultProfile: UserProfile = {
-        id: '1',
-        name: 'Fitness Enthusiast',
-        email: 'user@example.com',
-        dateOfBirth: '1990-01-01',
-        height: 175,
-        heightUnit: 'cm',
-        currentWeight: 75,
-        weightUnit: 'kg',
-        goalWeight: 80,
-        fitnessGoal: 'muscle_gain',
-        experienceLevel: 'intermediate',
-        trainingDaysPerWeek: 4,
-        calorieGoal: 2500,
-        proteinGoal: 150,
-        carbsGoal: 300,
-        fatGoal: 70,
-      };
-      setProfile(defaultProfile);
-      setFormData(defaultProfile);
+    if (user) {
+      loadSupabaseProfile();
+      loadWeightEntries();
     }
-  }, [profile]);
+  }, [user]);
+
+  useEffect(() => {
+    if (supabaseProfile) {
+      setFormData({
+        name: supabaseProfile.full_name || '',
+        height: supabaseProfile.height_cm || 175,
+        heightUnit: 'cm',
+        currentWeight: weightEntries[0]?.weight_kg || 75,
+        weightUnit: 'kg',
+        goalWeight: 80, // This could be stored in profile
+        fitnessGoal: supabaseProfile.goal || 'muscle_gain',
+        experienceLevel: 'intermediate', // This could be stored in profile
+        trainingDaysPerWeek: 4, // This could be stored in profile
+      });
+    }
+  }, [supabaseProfile, weightEntries]);
   
   const handleInputChange = (field: keyof UserProfile, value: string | number) => {
     setFormData(prev => ({
@@ -75,22 +68,33 @@ export default function ProfileScreen() {
     }));
   };
   
-  const handleSaveProfile = () => {
-    if (!profile) return;
+  const handleSaveProfile = async () => {
+    if (!user) return;
     
-    const updatedProfile: UserProfile = {
-      ...profile,
-      ...formData,
-    };
-    
-    setProfile(updatedProfile);
-    setIsEditing(false);
-    
-    Alert.alert(
-      "Profile Updated",
-      "Your profile has been successfully updated.",
-      [{ text: "OK" }]
-    );
+    try {
+      await updateSupabaseProfile({
+        full_name: formData.name,
+        height_cm: formData.height,
+        goal: formData.fitnessGoal,
+        age: formData.age, // Add age to form if needed
+        gender: formData.gender, // Add gender to form if needed
+        activity_level: formData.activityLevel, // Add activity level to form if needed
+      });
+      
+      setIsEditing(false);
+      
+      Alert.alert(
+        "Profile Updated",
+        "Your profile has been successfully updated.",
+        [{ text: "OK" }]
+      );
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        "Failed to update profile. Please try again.",
+        [{ text: "OK" }]
+      );
+    }
   };
   
   const handleToggleUnit = (type: 'height' | 'weight') => {
@@ -103,7 +107,10 @@ export default function ProfileScreen() {
       "Are you sure you want to logout?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Logout", onPress: () => logout() }
+        { text: "Logout", onPress: async () => {
+          await signOut();
+          logout();
+        }}
       ]
     );
   };
@@ -128,7 +135,8 @@ export default function ProfileScreen() {
   };
   
   return (
-    <SafeAreaView style={styles.container} edges={['right', 'left']}>
+    <AuthGuard>
+      <SafeAreaView style={styles.container} edges={['right', 'left']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Profile</Text>
         
@@ -260,8 +268,8 @@ export default function ProfileScreen() {
             <Card style={styles.profileCard}>
               <View style={styles.profileHeader}>
                 <View>
-                  <Text style={styles.profileName}>{profile?.name}</Text>
-                  <Text style={styles.profileEmail}>{profile?.email}</Text>
+                  <Text style={styles.profileName}>{supabaseProfile?.full_name || user?.email}</Text>
+                  <Text style={styles.profileEmail}>{user?.email}</Text>
                 </View>
                 <TouchableOpacity 
                   style={styles.editButton}
@@ -274,35 +282,19 @@ export default function ProfileScreen() {
               <View style={styles.statsContainer}>
                 <View style={styles.statItem}>
                   <Text style={styles.statValue}>
-                    {profile?.height} {profile?.heightUnit}
+                    {supabaseProfile?.height_cm || 175} cm
                   </Text>
                   <Text style={styles.statLabel}>Height</Text>
-                  <TouchableOpacity 
-                    style={styles.unitButton}
-                    onPress={() => handleToggleUnit('height')}
-                  >
-                    <Text style={styles.unitButtonText}>
-                      Switch to {profile?.heightUnit === 'cm' ? 'in' : 'cm'}
-                    </Text>
-                  </TouchableOpacity>
                 </View>
                 <View style={styles.statItem}>
                   <Text style={styles.statValue}>
-                    {profile?.currentWeight} {profile?.weightUnit}
+                    {weightEntries[0]?.weight_kg || 75} kg
                   </Text>
                   <Text style={styles.statLabel}>Weight</Text>
-                  <TouchableOpacity 
-                    style={styles.unitButton}
-                    onPress={() => handleToggleUnit('weight')}
-                  >
-                    <Text style={styles.unitButtonText}>
-                      Switch to {profile?.weightUnit === 'kg' ? 'lb' : 'kg'}
-                    </Text>
-                  </TouchableOpacity>
                 </View>
                 <View style={styles.statItem}>
                   <Text style={styles.statValue}>
-                    {profile?.goalWeight} {profile?.weightUnit}
+                    {supabaseProfile?.goal ? renderGoalName(supabaseProfile.goal) : 'Not set'}
                   </Text>
                   <Text style={styles.statLabel}>Goal</Text>
                 </View>
@@ -335,6 +327,7 @@ export default function ProfileScreen() {
             {weightEntries.length > 1 && (
               <WeightProgressGraph />
             )}
+
             
             <Button 
               title="Logout" 
@@ -344,8 +337,9 @@ export default function ProfileScreen() {
             />
           </>
         )}
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </AuthGuard>
   );
 }
 

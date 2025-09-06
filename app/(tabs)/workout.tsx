@@ -6,6 +6,7 @@ import { Plus, Trash2 } from 'lucide-react-native';
 import { WorkoutCard } from '@/components/workout/WorkoutCard';
 import { CreateWorkoutModal } from '@/components/workout/CreateWorkoutModal';
 import { Card } from '@/components/ui/Card';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 import Colors from '@/constants/colors';
 import { useWorkoutStore } from '@/store/workout-store';
 
@@ -71,7 +72,8 @@ export default function WorkoutScreen() {
   };
   
   return (
-    <SafeAreaView style={styles.container} edges={['right', 'left']}>
+    <AuthGuard>
+      <SafeAreaView style={styles.container} edges={['right', 'left']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Workout</Text>
         
@@ -163,11 +165,12 @@ export default function WorkoutScreen() {
         ))}
       </ScrollView>
       
-      <CreateWorkoutModal 
-        visible={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-      />
-    </SafeAreaView>
+        <CreateWorkoutModal 
+          visible={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+        />
+      </SafeAreaView>
+    </AuthGuard>
   );
 }
 

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArticleCard } from '@/components/education/ArticleCard';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 import Colors from '@/constants/colors';
 import { articles } from '@/mocks/articles';
 
@@ -22,7 +23,8 @@ export default function EducationScreen() {
     : articles.filter(article => article.category.toLowerCase() === selectedCategory.toLowerCase());
   
   return (
-    <SafeAreaView style={styles.container} edges={['right', 'left']}>
+    <AuthGuard>
+      <SafeAreaView style={styles.container} edges={['right', 'left']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Learn</Text>
         <Text style={styles.subtitle}>Latest research and bodybuilding knowledge</Text>
@@ -112,8 +114,9 @@ export default function EducationScreen() {
         ) : (
           <Text style={styles.emptyText}>No articles found in this category</Text>
         )}
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </AuthGuard>
   );
 }
 

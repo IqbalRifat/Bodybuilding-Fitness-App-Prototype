@@ -4,9 +4,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MealEntry, Supplement, WeightEntry, FoodItem, NutritionSettings } from '@/types/nutrition';
 import { foodItems } from '@/mocks/food-items';
 import { supplements } from '@/mocks/supplements';
+import { nutritionAPI, foodAPI, FoodItem as SupabaseFoodItem, NutritionEntry } from '@/lib/api';
+import { fatSecretAPI } from '@/lib/fatsecret';
 
 interface NutritionState {
   mealEntries: MealEntry[];
+  nutritionEntries: NutritionEntry[];
   supplements: Supplement[];
   weightEntries: WeightEntry[];
   customFoodItems: FoodItem[];
@@ -17,13 +20,19 @@ interface NutritionState {
   updateSettings: (settings: Partial<NutritionSettings>) => void;
   
   // Food items
+  searchFoodItems: (query: string) => Promise<FoodItem[]>;
   addFoodItem: (item: FoodItem) => void;
   updateFoodItem: (item: FoodItem) => void;
   removeFoodItem: (id: string) => void;
   getAllFoodItems: () => FoodItem[];
   getFoodItemById: (id: string) => FoodItem | undefined;
   
-  // Meal entries
+  // Nutrition entries (Supabase)
+  loadNutritionEntries: (date: string) => Promise<void>;
+  addNutritionEntry: (entry: Omit<NutritionEntry, 'id' | 'user_id' | 'created_at'>) => Promise<void>;
+  removeNutritionEntry: (id: string) => Promise<void>;
+  
+  // Meal entries (legacy)
   addMealEntry: (entry: MealEntry) => void;
   removeMealEntry: (id: string) => void;
   getMealEntriesByDate: (date: string) => MealEntry[];
@@ -49,6 +58,7 @@ export const useNutritionStore = create<NutritionState>()(
   persist(
     (set, get) => ({
       mealEntries: [],
+      nutritionEntries: [],
       supplements: [...supplements], // Initialize with mock data
       weightEntries: [],
       customFoodItems: [],
@@ -64,6 +74,60 @@ export const useNutritionStore = create<NutritionState>()(
       })),
       
       // Food items
+      searchFoodItems: async (query) => {
+        try {
+          // Initialize FatSecret API
+          await fatSecretAPI.initialize();
+          
+          // Search both local database and FatSecret
+          const [localResults, fatSecretResults] = await Promise.all([
+            foodAPI.search(query),
+            fatSecretAPI.isConfigured() ? fatSecretAPI.searchFoods(query) : Promise.resolve([])
+          ]);
+
+          // Convert Supabase results to FoodItem format
+          const convertedLocal: FoodItem[] = localResults.map(item => ({
+            id: item.id,
+            name: item.name,
+            brand: item.brand,
+            calories: item.calories_per_100g,
+            protein: item.protein_per_100g,
+            carbs: item.carbs_per_100g,
+            fat: item.fat_per_100g,
+            fiber: item.fiber_per_100g || 0,
+            sugar: item.sugar_per_100g || 0,
+            sodium: item.sodium_per_100g || 0,
+            isCustom: false,
+          }));
+
+          // Convert FatSecret results to FoodItem format
+          const convertedFatSecret: FoodItem[] = fatSecretResults.map(item => ({
+            id: item.id,
+            name: item.name,
+            brand: item.brand,
+            calories: item.calories_per_100g,
+            protein: item.protein_per_100g,
+            carbs: item.carbs_per_100g,
+            fat: item.fat_per_100g,
+            fiber: item.fiber_per_100g || 0,
+            sugar: item.sugar_per_100g || 0,
+            sodium: item.sodium_per_100g || 0,
+            isCustom: false,
+          }));
+
+          return [...convertedLocal, ...convertedFatSecret];
+        } catch (error) {
+          console.error('Error searching food items:', error);
+          // Fallback to local mock data
+          const { customFoodItems } = get();
+          return [...foodItems, ...customFoodItems].filter(item => 
+            item.name.toLowerCase().includes(query.toLowerCase()) ||
+            (item.brand && item.brand.toLowerCase().includes(query.toLowerCase()))
+          );
+        }
+      },
+
+
       addFoodItem: (item) => set((state) => ({
         customFoodItems: [...state.customFoodItems, { ...item, isCustom: true }]
       })),
@@ -86,6 +150,40 @@ export const useNutritionStore = create<NutritionState>()(
       getFoodItemById: (id) => {
         const allItems = get().getAllFoodItems();
         return allItems.find(item => item.id === id);
+      },
+
+      // Nutrition entries (Supabase)
+      loadNutritionEntries: async (date) => {
+        try {
+          const entries = await nutritionAPI.getByDate(date);
+          set({ nutritionEntries: entries });
+        } catch (error) {
+          console.error('Error loading nutrition entries:', error);
+        }
+      },
+
+      addNutritionEntry: async (entry) => {
+        try {
+          const newEntry = await nutritionAPI.add(entry);
+          set((state) => ({
+            nutritionEntries: [...state.nutritionEntries, newEntry]
+          }));
+        } catch (error) {
+          console.error('Error adding nutrition entry:', error);
+          throw error;
+        }
+      },
+
+      removeNutritionEntry: async (id) => {
+        try {
+          await nutritionAPI.delete(id);
+          set((state) => ({
+            nutritionEntries: state.nutritionEntries.filter(entry => entry.id !== id)
+          }));
+        } catch (error) {
+          console.error('Error removing nutrition entry:', error);
+          throw error;
+        }
       },
       
       // Meal entries

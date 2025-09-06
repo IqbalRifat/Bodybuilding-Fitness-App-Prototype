@@ -1,9 +1,23 @@
 import React from "react";
 import { Tabs } from "expo-router";
-import { Home, Dumbbell, BookOpen, User } from "lucide-react-native";
+import { Home, Dumbbell, BookOpen, User, MessageSquare } from "lucide-react-native";
+import { TouchableOpacity } from "react-native";
+import { router } from "expo-router";
+import { useAuth } from "@/components/auth/AuthProvider";
 import Colors from "@/constants/colors";
 
 export default function TabLayout() {
+  const { user } = useAuth();
+
+  const CoachButton = () => (
+    <TouchableOpacity
+      onPress={() => router.push('/coach')}
+      className="mr-4"
+    >
+      <MessageSquare size={24} color={Colors.dark.primary} />
+    </TouchableOpacity>
+  );
+
   return (
     <Tabs
       screenOptions={{
@@ -24,6 +38,7 @@ export default function TabLayout() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
+        headerRight: user ? () => <CoachButton /> : undefined,
       }}
     >
       <Tabs.Screen

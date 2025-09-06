@@ -2,13 +2,20 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserProfile, DailyStats } from '@/types/user';
+import { profileAPI, weightAPI, Profile, WeightEntry } from '@/lib/api';
 
 interface UserState {
   profile: UserProfile | null;
+  supabaseProfile: Profile | null;
+  weightEntries: WeightEntry[];
   dailyStats: DailyStats | null;
   isOnboarded: boolean;
   isAuthenticated: boolean;
   setProfile: (profile: UserProfile) => void;
+  loadSupabaseProfile: () => Promise<void>;
+  updateSupabaseProfile: (updates: Partial<Profile>) => Promise<void>;
+  loadWeightEntries: () => Promise<void>;
+  addWeightEntry: (weight: number, date: string) => Promise<void>;
   updateWeight: (weight: number) => void;
   updateDailyStats: (stats: Partial<DailyStats>) => void;
   setOnboarded: (value: boolean) => void;
@@ -23,6 +30,8 @@ export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
       profile: null,
+      supabaseProfile: null,
+      weightEntries: [],
       dailyStats: null,
       isOnboarded: false,
       isAuthenticated: false,
@@ -31,6 +40,46 @@ export const useUserStore = create<UserState>()(
         set({ profile });
         // Calculate calorie goals when profile is set
         setTimeout(() => get().calculateCalorieGoals(), 0);
+      },
+
+      loadSupabaseProfile: async () => {
+        try {
+          const profile = await profileAPI.get();
+          set({ supabaseProfile: profile });
+        } catch (error) {
+          console.error('Error loading profile:', error);
+        }
+      },
+
+      updateSupabaseProfile: async (updates) => {
+        try {
+          const updatedProfile = await profileAPI.update(updates);
+          set({ supabaseProfile: updatedProfile });
+        } catch (error) {
+          console.error('Error updating profile:', error);
+          throw error;
+        }
+      },
+
+      loadWeightEntries: async () => {
+        try {
+          const entries = await weightAPI.getAll();
+          set({ weightEntries: entries });
+        } catch (error) {
+          console.error('Error loading weight entries:', error);
+        }
+      },
+
+      addWeightEntry: async (weight, date) => {
+        try {
+          const entry = await weightAPI.add({ weight_kg: weight, date });
+          set((state) => ({
+            weightEntries: [entry, ...state.weightEntries]
+          }));
+        } catch (error) {
+          console.error('Error adding weight entry:', error);
+          throw error;
+        }
       },
       
       updateWeight: (weight) => set((state) => {

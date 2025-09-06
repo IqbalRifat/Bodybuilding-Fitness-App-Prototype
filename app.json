@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Bodybuilding Fitness App",
-    "slug": "bodybuilding-fitness-app",
+    "name": "Wira",
+    "slug": "wira",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -15,14 +15,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.rork.bodybuilding-fitness-app"
+      "bundleIdentifier": "app.wira.fitness"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "app.rork.bodybuilding-fitness-app"
+      "package": "app.wira.fitness"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -31,7 +31,7 @@
       [
         "expo-router",
         {
-          "origin": "https://rork.com/"
+          "origin": "https://wira.app/"
         }
       ]
     ],

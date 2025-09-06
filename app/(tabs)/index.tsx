@@ -8,15 +8,38 @@ import Colors from '@/constants/colors';
 import { useUserStore } from '@/store/user-store';
 import { useNutritionStore } from '@/store/nutrition-store';
 import { useWorkoutStore } from '@/store/workout-store';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { LoginScreen } from '@/components/auth/LoginScreen';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { user, loading } = useAuth();
+  const [isSignUp, setIsSignUp] = React.useState(false);
   const profile = useUserStore(state => state.profile);
   const getMealEntriesByDate = useNutritionStore(state => state.getMealEntriesByDate);
   const getRecentWorkoutSessions = useWorkoutStore(state => state.getRecentWorkoutSessions);
   
   const colorScheme = useColorScheme() || 'dark';
   const colors = Colors[colorScheme];
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.loadingContainer}>
+          <Text style={[styles.loadingText, { color: colors.text }]}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!user) {
+    return (
+      <LoginScreen 
+        isSignUp={isSignUp}
+        onToggleMode={() => setIsSignUp(!isSignUp)}
+      />
+    );
+  }
   
   // Use current date for tracking
   const today = new Date().toISOString().split('T')[0];
@@ -314,5 +337,13 @@ const styles = StyleSheet.create({
   },
   quickActionButton: {
     alignSelf: 'flex-start',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
   },
 });

@@ -13,7 +13,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Camera, Barcode, Plus } from 'lucide-react-native';
+import { FoodSearchModal } from '@/components/nutrition/FoodSearchModal';
+import { Camera, Barcode, Plus, Search } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { useNutritionStore } from '@/store/nutrition-store';
 import { FoodItem, MealEntry, Micronutrients } from '@/types/nutrition';
@@ -34,6 +35,7 @@ export default function AddFoodScreen() {
   const [selectedServingOption, setSelectedServingOption] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showAddCustomFood, setShowAddCustomFood] = useState(false);
+  const [showFoodSearch, setShowFoodSearch] = useState(false);
   
   // Custom food form state
   const [customName, setCustomName] = useState('');
@@ -117,12 +119,26 @@ export default function AddFoodScreen() {
     router.back();
   };
   
-  const handleScanBarcode = () => {
-    Alert.alert(
-      "Barcode Scanner",
-      "This feature would open the camera to scan a food barcode. The app would then look up the nutritional information in a database.",
-      [{ text: "OK" }]
-    );
+  const handleSelectFood = (food: any) => {
+    // Convert the selected food to our FoodItem format
+    const convertedFood: FoodItem = {
+      id: food.id,
+      name: food.name,
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fat: food.fat,
+      servingSize: '100g',
+      servingOptions: [
+        { name: '100g', multiplier: 1 },
+        { name: '1 serving', multiplier: 1 },
+        { name: 'gram', multiplier: 0.01 }
+      ],
+      isCustom: false
+    };
+    
+    setSelectedItem(convertedFood);
+    setShowFoodSearch(false);
   };
   
   const handleAddCustomFood = () => {
@@ -176,17 +192,12 @@ export default function AddFoodScreen() {
           <Text style={styles.title}>Add Food to {mealType}</Text>
           
           <View style={styles.searchContainer}>
-            <Input
-              placeholder="Search for food..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              containerStyle={styles.searchInput}
-            />
             <TouchableOpacity 
-              style={styles.barcodeButton}
-              onPress={handleScanBarcode}
+              style={styles.searchButton}
+              onPress={() => setShowFoodSearch(true)}
             >
-              <Barcode size={24} color={Colors.dark.text} />
+              <Search size={20} color={Colors.dark.subtext} />
+              <Text style={styles.searchButtonText}>Search food database...</Text>
             </TouchableOpacity>
           </View>
           
@@ -382,6 +393,12 @@ export default function AddFoodScreen() {
           </Card>
         </View>
       )}
+      
+      <FoodSearchModal
+        visible={showFoodSearch}
+        onClose={() => setShowFoodSearch(false)}
+        onSelectFood={handleSelectFood}
+      />
     </View>
   );
 }
@@ -404,17 +421,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     gap: 8,
   },
-  searchInput: {
-    flex: 1,
-    marginBottom: 0,
-  },
-  barcodeButton: {
-    backgroundColor: Colors.dark.card,
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    justifyContent: 'center',
+  searchButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: Colors.dark.card,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+  },
+  searchButtonText: {
+    color: Colors.dark.subtext,
+    fontSize: 16,
+    marginLeft: 12,
   },
   listContent: {
     paddingBottom: 16,

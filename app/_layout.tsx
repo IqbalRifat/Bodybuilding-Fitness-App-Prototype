@@ -5,6 +5,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import Colors from "@/constants/colors";
+import { AuthProvider } from "@/components/auth/AuthProvider";
+import "../global.css";
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -40,7 +42,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   return (
-    <>
+    <AuthProvider>
       <StatusBar style="light" />
       <Stack
         screenOptions={{
@@ -78,7 +80,21 @@ function RootLayoutNav() {
             headerShown: true,
           }} 
         />
+        <Stack.Screen 
+          name="auth" 
+          options={{ 
+            headerShown: false,
+            presentation: "modal",
+          }} 
+        />
+        <Stack.Screen 
+          name="coach" 
+          options={{ 
+            title: "CoachGPT",
+            headerShown: true,
+          }} 
+        />
       </Stack>
-    </>
+    </AuthProvider>
   );
 }
