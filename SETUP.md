@@ -1,6 +1,6 @@
-# RORK Bodybuilding & Fitness App - Setup Guide
+# Bodybuilding & Fitness App - Setup Guide
 
-This guide will help you set up the complete backend infrastructure and configure all the necessary APIs for the RORK Bodybuilding & Fitness app.
+This guide will help you set up the complete backend infrastructure and configure all the necessary APIs for the Bodybuilding & Fitness app.
 
 ## Prerequisites
 
@@ -129,8 +129,8 @@ INSERT INTO public.exercises (name, muscle_group, equipment, instructions) VALUE
 ```sql
 -- Insert sample blog articles
 INSERT INTO public.articles (title, content, excerpt, author, category, is_published, published_at) VALUES
-('The Science of Progressive Overload', 'Progressive overload is the foundation of muscle growth...', 'Learn how to progressively increase training stimulus', 'RORK Team', 'Training', true, NOW()),
-('Nutrition for Muscle Gain', 'Building muscle requires proper nutrition...', 'Complete guide to eating for muscle growth', 'RORK Team', 'Nutrition', true, NOW());
+('The Science of Progressive Overload', 'Progressive overload is the foundation of muscle growth...', 'Learn how to progressively increase training stimulus', 'Fitness Team', 'Training', true, NOW()),
+('Nutrition for Muscle Gain', 'Building muscle requires proper nutrition...', 'Complete guide to eating for muscle growth', 'Fitness Team', 'Nutrition', true, NOW());
 ```
 
 ## 7. Testing Features
