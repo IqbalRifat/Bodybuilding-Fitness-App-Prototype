@@ -31,7 +31,7 @@ expo/
 ├── lib/          # Supabase client and helpers
 └── types/        # TypeScript definitions
 
-##Team
+## Team
 Built by Iqbal Rifat and Washieu Anan.
 My role: product definition and scope — user flows, feature prioritization, and MVP requirements.
 Portions of the codebase were scaffolded using Rork, an AI app builder.
